@@ -1,0 +1,37 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+// enum статусов для валидации/инвариантов
+enum ImageStatus {
+  ready
+  processing
+  failed
+}
+
+model Image {
+  id          String      @id @default(uuid())
+  hash        String      @db.Char(64)
+  cropSig     String      @db.Char(40)
+  s3Bucket    String?
+  s3Key       String?
+  width       Int
+  height      Int
+  mime        String
+  sizeBytes   BigInt
+  meta        Json         @default("{}")
+  status      ImageStatus
+  version     Int          @default(1)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([hash, cropSig])
+  @@index([hash])
+  @@index([status])
+}
